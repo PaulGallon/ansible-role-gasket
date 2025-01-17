@@ -1,0 +1,4 @@
+- name: Test playbook for gasket role
+  hosts: localhost
+  roles:
+    - gasket
