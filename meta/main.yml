@@ -2,7 +2,6 @@
 galaxy_info:
   role_name: gasket
   author: PaulGallon
-  namespace: paulgallon
   description: Role to install Gasket from Google repos.
   license: MIT
   min_ansible_version: '2.10'
