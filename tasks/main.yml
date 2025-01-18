@@ -3,9 +3,9 @@
     cmd: !unsafe dpkg-query -W -f='${Version}' gasket-dkms
   register: gasket_dkms_installed
   ignore_errors: true
-  changed_when: no
+  changed_when: false
 
-- name: Set fact if installed version ( {{ gasket_dkms_installed.stdout }} ) is newer or equal to {{ gasket_dkms_version }}
+- name: Set fact if installed version is newer or equal to {{ gasket_dkms_version }}
   ansible.builtin.set_fact:
     gasket_dkms_version_acceptable: "{{ gasket_dkms_installed.stdout is defined and (gasket_dkms_installed.stdout == gasket_dkms_version) }}"
 
@@ -18,10 +18,10 @@
       - devscripts
       - dh-dkms
     state: present
-    update_cache: yes
+    update_cache: true
   become: true
 
-- name: Skip installation if gasket-dkms version {{ gasket_dkms_version }} or newer is already installed
+- name: Skip installation if gasket-dkms version is already installed
   ansible.builtin.debug:
     msg: "Gasket DKMS version {{ gasket_dkms_installed.stdout }} is already installed and is equal to or newer than {{ gasket_dkms_version }}."
   when: gasket_dkms_version_acceptable
@@ -30,6 +30,7 @@
 - name: Clone the Gasket Driver repository
   ansible.builtin.git:
     repo: "https://github.com/google/gasket-driver.git"
+    version: 5815ee3908a46a415aac616ac7b9aedcb98a504c
     dest: /tmp/gasket-driver
   when: not gasket_dkms_version_acceptable
 
@@ -38,6 +39,8 @@
     cmd: debuild -us -uc -tc -b
     chdir: /tmp/gasket-driver/
   when: not gasket_dkms_version_acceptable
+  register: build_result
+  changed_when: build_result.rc == 0
 
 - name: Get the built .deb package version
   ansible.builtin.command:
