@@ -1,0 +1,19 @@
+name: Test role
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  package-states:
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        ansible-core: ['2.16.*', '2.21.5']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install 'ansible-core==${{ matrix.ansible-core }}'
+      - run: python tests/test_package_states.py

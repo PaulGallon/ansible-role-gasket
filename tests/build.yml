@@ -1,0 +1,26 @@
+---
+- name: Test a fresh Gasket build
+  hosts: all
+  gather_facts: false
+  become: true
+  roles:
+    - "{{ playbook_dir }}/.."
+  tasks:
+    - name: Verify DKMS registered the installed driver
+      ansible.builtin.command: dkms status
+      register: test_dkms_status
+      changed_when: false
+    - name: Verify a successful driver build
+      ansible.builtin.assert:
+        that:
+          - "'gasket/1.0' in test_dkms_status.stdout"
+          - "'installed' in test_dkms_status.stdout"
+    - name: Find leftover role build directories
+      ansible.builtin.find:
+        paths: /tmp
+        patterns: gasket-driver-*
+        file_type: directory
+      register: test_build_directories
+    - name: Verify build cleanup
+      ansible.builtin.assert:
+        that: test_build_directories.matched == 0
